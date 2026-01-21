@@ -4,7 +4,7 @@ use axum::{
     routing::get,
     Router,
 };
-use sysinfo::{System, SystemExt};
+use sysinfo::System;
 use std::time::Duration;
 use std::net::SocketAddr;
 
@@ -38,7 +38,7 @@ async fn handle_socket(mut socket: WebSocket) {
         });
 
         if socket
-            .send(Message::Text(payload.to_string()))
+            .send(Message::Text(payload.to_string().into()))
             .await
             .is_err()
         {
