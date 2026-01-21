@@ -1,7 +1,9 @@
 services:
   monitor:
-    image: krusovice/personal-server-monitor:latest
     container_name: personal-server-monitor
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: always
     expose:
       - "8010"
