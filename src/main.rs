@@ -27,6 +27,7 @@ async fn ws_handler(ws: WebSocketUpgrade) -> impl IntoResponse {
 
 async fn handle_socket(mut socket: WebSocket) {
     let mut sys = System::new();
+    println!("Sysinfo initialized");
 
     loop {
         sys.refresh_cpu_all();
