@@ -1,0 +1,13 @@
+services:
+  monitor:
+    image: krusovice/personal-server-monitor:latest
+    container_name: personal-server-monitor
+    restart: always
+    expose:
+      - "8010"
+    networks:
+      - webpage_network
+
+networks:
+  webpage_network:
+    external: True
