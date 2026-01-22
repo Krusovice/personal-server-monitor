@@ -7,9 +7,14 @@ use axum::{
 use sysinfo::System;
 use std::time::Duration;
 use std::net::SocketAddr;
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::collections::VecDeque;
+
 
 #[tokio::main]
 async fn main() {
+    println!("Server Monitoring Initializing!");
+
     let app = Router::new().route("/ws/metrics", get(ws_handler));
 
     let addr: SocketAddr = "0.0.0.0:8010".parse().unwrap();
@@ -27,19 +32,34 @@ async fn ws_handler(ws: WebSocketUpgrade) -> impl IntoResponse {
 
 async fn handle_socket(mut socket: WebSocket) {
     let mut sys = System::new();
-    println!("Sysinfo initialized");
+    let mut data: VecDeque<serde_json::Value> = VecDeque::with_capacity(3600);
 
     loop {
         sys.refresh_cpu_all();
         sys.refresh_memory();
 
-        let payload = serde_json::json!({
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_secs();
+
+        let collected_data = serde_json::json!({
             "cpu": sys.global_cpu_usage(),
-            "ram": (sys.used_memory() as f64 / sys.total_memory() as f64) * 100.0
-        });
+            "ram": (sys.used_memory() as f64 / sys.total_memory() as f64),
+            "timestamp": timestamp
+            });
+
+        // remove oldest data
+        data.push_back(collected_data);
+
+        if data.len() == 3600 {
+            data.pop_front(); 
+        }
+
+        let json_string = serde_json::to_string(&data).unwrap();
 
         if socket
-            .send(Message::Text(payload.to_string().into()))
+            .send(Message::Text(json_string.into()))
             .await
             .is_err()
         {
