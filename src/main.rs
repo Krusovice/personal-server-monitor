@@ -13,7 +13,7 @@ use std::collections::VecDeque;
 
 #[tokio::main]
 async fn main() {
-    println!("Server Monitoring Initializing!");
+    
 
     let app = Router::new().route("/ws/metrics", get(ws_handler));
 
@@ -31,6 +31,7 @@ async fn ws_handler(ws: WebSocketUpgrade) -> impl IntoResponse {
 }
 
 async fn handle_socket(mut socket: WebSocket) {
+    println!("Server Monitoring Initializing!");
     let mut sys = System::new();
     let mut data: VecDeque<serde_json::Value> = VecDeque::with_capacity(3600);
 

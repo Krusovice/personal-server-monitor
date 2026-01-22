@@ -12,9 +12,12 @@ RUN rm -rf src
 COPY src ./src
 RUN cargo build --release
 
+# Runtime image (can be same as build if you want simplicity)
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
 
 # Copy binary from builder
 COPY --from=builder /app/target/release/personal-server-monitor .
