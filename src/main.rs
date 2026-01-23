@@ -8,21 +8,32 @@ use axum::{
 */
 use serde_json::Value;
 use sysinfo::System;
-// use std::time::Duration;
+use tokio::time::{sleep, Duration};
 // use std::net::SocketAddr;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::VecDeque;
 
-
-fn main() {
+#[tokio::main]
+async fn main() {
     println!("Server Monitoring Initializing!");
     let sys = System::new();
 
-    let metrics = read_metrics(sys);
-    println!("{}", metrics);
+    //let mut data: VecDeque<serde_json::Value> = VecDeque::with_capacity(3600);
+
+    continuous_metrics_monitor(sys).await;
+
 }
 
-fn read_metrics( mut sys: System ) -> Value {
+async fn continuous_metrics_monitor(mut sys: System ) {
+    loop {
+        let metrics = read_metrics(&mut sys);
+        println!("{}", metrics);
+
+        sleep(Duration::from_secs(1)).await;
+    }
+}
+
+fn read_metrics( sys: &mut System ) -> Value {
     sys.refresh_cpu_all();
     sys.refresh_memory();
 
@@ -40,6 +51,23 @@ fn read_metrics( mut sys: System ) -> Value {
     collected_data
 }
 /*
+fn store_metrics_data(
+    mut data_array: VecDeque<serde_json::Value>,
+    collected_data: serde_json::json! ) {
+
+    // remove oldest data
+    data_array.push_back(collected_data);
+
+    if data_array.len() == 3600 {
+        data_array.pop_front(); 
+    }
+
+    let json_string = serde_json::to_string(&data).unwrap();
+
+    
+}
+
+
 
 #[tokio::main]
 async fn main() {
@@ -71,23 +99,7 @@ handle_socket(mut socket: WebSocket) {
     }
 }
 
-let mut data: VecDeque<serde_json::Value> = VecDeque::with_capacity(3600);
 
-fn store_metrics_data(
-    mut data_array: VecDeque<serde_json::Value>,
-    collected_data: serde_json::json! ) {
-
-    // remove oldest data
-    data_array.push_back(collected_data);
-
-    if data_array.len() == 3600 {
-        data_array.pop_front(); 
-    }
-
-    let json_string = serde_json::to_string(&data).unwrap();
-
-    tokio::time::sleep(Duration::from_secs(1)).await;
-}
 
 
 
