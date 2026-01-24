@@ -12,22 +12,41 @@ use tokio::time::{sleep, Duration};
 // use std::net::SocketAddr;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::VecDeque;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
+type SharedData = Arc<Mutex<VecDeque<Value>>>;
 
 #[tokio::main]
 async fn main() {
     println!("Server Monitoring Initializing!");
     let sys = System::new();
+    let data: SharedData = Arc::new(Mutex::new(VecDeque::with_capacity(3600)));
 
-    //let mut data: VecDeque<serde_json::Value> = VecDeque::with_capacity(3600);
 
-    continuous_metrics_monitor(sys).await;
+    continuous_metrics_monitor(sys, data).await;
 
 }
 
-async fn continuous_metrics_monitor(mut sys: System ) {
+    
+
+
+
+async fn continuous_metrics_monitor(mut sys: System, data: SharedData ) {
+
     loop {
-        let metrics = read_metrics(&mut sys);
-        println!("{}", metrics);
+        let collected_metrics = read_metrics(&mut sys);
+        
+        // Adding collected metrics to data array, and keeping data array at max length of 3600
+        {
+            let mut guard = data.lock().await;
+            guard.push_back(collected_metrics);
+            if guard.len() > 3600 {
+                guard.pop_front();
+            }
+        }
+
+        println!("{:#?}", data);
 
         sleep(Duration::from_secs(1)).await;
     }
