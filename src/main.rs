@@ -94,6 +94,7 @@ async fn activate_metrics_monitor(
         }
 
         //println!("{:#?}", data);
+        println!("Pushing metrics");
         let _ = tx.send(metrics); // ignore lagged receivers
         sleep(Duration::from_secs(1)).await;
     }
