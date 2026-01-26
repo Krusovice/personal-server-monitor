@@ -51,10 +51,12 @@ async fn main() {
 
     println!("listening on {}", addr);
 
-    axum_server::bind(addr)
+    if let Err(e) = axum_server::bind(addr)
         .serve(app.into_make_service())
         .await
-        .unwrap();
+    {
+        eprintln!("SERVER FAILED: {:?}", e);
+    }
 }
 
 fn read_metrics( sys: &mut System ) -> Value {
