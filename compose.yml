@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  test:
+  monitor:
     container_name: metrics-monitor
     build:
       context: .
